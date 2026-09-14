@@ -1,17 +1,21 @@
 import fs from "node:fs";
-import path from "node:path";
 import { parseEnv } from "node:util";
+import { projectPath } from "./plan-b-scope.mjs";
 
 const readEnv = (p) =>
   p && fs.existsSync(p) ? parseEnv(fs.readFileSync(p, "utf8")) : {};
-const imported = readEnv(process.env.ZH_ENV_SOURCE);
-const local = readEnv(process.env.ZH_ENV_FILE || ".env.zhijing");
-const e = { ...imported, ...local, ...process.env };
+// The fork never imports the original project's environment file or data.
+if (process.env.ZH_ENV_SOURCE)
+  throw new Error(
+    "Plan B 不读取其他项目的环境配置，请使用副本内的 .env.plan-b。",
+  );
+const local = readEnv(projectPath(process.env.ZH_ENV_FILE, ".env.plan-b"));
+const e = { ...local, ...process.env };
 export const config = {
-  port: Number(e.ZH_API_PORT || 4330),
-  dataDir: path.resolve(e.ZH_DATA_DIR || "data"),
-  basePath: e.NEXT_PUBLIC_BASE_PATH || "",
-  origin: e.ZH_PUBLIC_ORIGIN || "http://localhost:3000",
+  port: Number(e.ZH_API_PORT || 4430),
+  dataDir: projectPath(e.ZH_DATA_DIR, "data-plan-b"),
+  basePath: e.NEXT_PUBLIC_BASE_PATH ?? "/zhijing",
+  origin: e.ZH_PUBLIC_ORIGIN || "http://localhost:3100",
   production: e.NODE_ENV === "production",
   modelBase: (
     e.ZH_MODEL_BASE ||

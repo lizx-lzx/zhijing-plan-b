@@ -1,3 +1,4 @@
+throw new Error("Plan B: 原知径的密钥配置与部署脚本仅供参考，已禁用。");
 // Transfer only the existing pipeline's model/voice settings to this app's private server directory.
 // No secrets are logged, saved in this checkout, or included in release archives.
 import fs from "node:fs";

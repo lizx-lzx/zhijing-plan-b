@@ -43,13 +43,14 @@ export const now = () => new Date().toISOString();
 export const one = (sql, ...args) => db.prepare(sql).get(...args);
 export const all = (sql, ...args) => db.prepare(sql).all(...args);
 export const run = (sql, ...args) => db.prepare(sql).run(...args);
+const sessionCookieName = "zhijing_plan_b_session";
 
 export function session(req, res) {
   const raw = (req.headers.cookie || "")
     .split(";")
     .map((x) => x.trim())
-    .find((x) => x.startsWith("zhijing_session="))
-    ?.slice(16);
+    .find((x) => x.startsWith(`${sessionCookieName}=`))
+    ?.slice(sessionCookieName.length + 1);
   const existing =
     raw && raw.length <= 128
       ? one(
@@ -74,7 +75,7 @@ export function setSession(res, user) {
   );
   res.setHeader(
     "Set-Cookie",
-    `zhijing_session=${token}; Path=${config.basePath || "/"}; HttpOnly; SameSite=Lax; Max-Age=15552000${config.production ? "; Secure" : ""}`,
+    `${sessionCookieName}=${token}; Path=${config.basePath || "/"}; HttpOnly; SameSite=Lax; Max-Age=15552000${config.production ? "; Secure" : ""}`,
   );
 }
 export function limit(key, max, seconds = 86400) {

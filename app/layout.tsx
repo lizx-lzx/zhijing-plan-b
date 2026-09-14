@@ -15,12 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const origin =
-    process.env.ZH_PUBLIC_ORIGIN ||
-    (basePath ? "https://app.chainvalley.top" : "http://localhost:3000");
+  const origin = process.env.ZH_PUBLIC_ORIGIN || "http://localhost:3100";
 
   return {
-    title: "知径｜先认识你，再为你讲知识",
+    title: "知径 Plan B｜独立开发副本",
     description: "通过一次个人学习适配，把文章重新组织成更适合你的学习路径。",
     openGraph: {
       title: "知径｜先认识你，再为你讲知识",

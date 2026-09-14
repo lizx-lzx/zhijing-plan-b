@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import path from "node:path";
 import net from "node:net";
 import { buildProfile } from "../lib/domain.ts";
@@ -11,7 +10,8 @@ import { DatabaseSync } from "node:sqlite";
 import { sampleText } from "../server/sample.mjs";
 
 test("HTTP contract: persistence, isolation, CSRF, recovery and honest failure", async (t) => {
-  const temp = await mkdtemp(path.join(tmpdir(), "zhijing-api-test-"));
+  await mkdir("test-results", { recursive: true });
+  const temp = await mkdtemp(path.resolve("test-results/zhijing-api-test-"));
   const finder = net.createServer();
   finder.listen(0, "127.0.0.1");
   await once(finder, "listening");
@@ -64,6 +64,7 @@ test("HTTP contract: persistence, isolation, CSRF, recovery and honest failure",
       });
       const set = r.headers.get("set-cookie");
       if (set) {
+        assert.match(set, /^zhijing_plan_b_session=/);
         assert.match(set, /HttpOnly/);
         assert.match(set, /SameSite=Lax/);
         cookie = set.split(";")[0];
@@ -77,9 +78,22 @@ test("HTTP contract: persistence, isolation, CSRF, recovery and honest failure",
       b = client();
     assert.equal((await a("/me")).data.profile, null);
     assert.equal((await b("/me")).data.profile, null);
-    assert.deepEqual((await a('/companion/chat')).data.messages, []);
-    assert.equal((await a('/companion/chat','POST',{question:''})).status,400);
-    assert.equal((await a('/companion/chat','POST',{question:'你好'},{Origin:'https://evil.example'})).status,403);
+    assert.deepEqual((await a("/companion/chat")).data.messages, []);
+    assert.equal(
+      (await a("/companion/chat", "POST", { question: "" })).status,
+      400,
+    );
+    assert.equal(
+      (
+        await a(
+          "/companion/chat",
+          "POST",
+          { question: "你好" },
+          { Origin: "https://evil.example" },
+        )
+      ).status,
+      403,
+    );
     const profile = buildProfile({
       entry: "story",
       primary: "reading",

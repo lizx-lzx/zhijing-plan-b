@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+printf '%s\n' 'Plan B: 原知径部署脚本仅供参考，已禁用。' >&2
+exit 2
 set -euo pipefail
 # Run on the user's server, after staging checks; touches only the Zhijing service and location.
 app=/home/ubuntu/apps/zhijing

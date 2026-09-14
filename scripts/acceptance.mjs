@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import { defaultAnswers } from "../lib/domain.ts";
 import { sampleText } from "../server/sample.mjs";
 
-const origin = process.env.ZH_ACCEPTANCE_URL || "http://127.0.0.1:4330/api";
+const origin = process.env.ZH_ACCEPTANCE_URL || "http://127.0.0.1:4430/zhijing/api";
 function client() {
   let cookie = "";
   return async (path, method = "GET", body) => {

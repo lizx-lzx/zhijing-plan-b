@@ -2,6 +2,7 @@ import vinext from "vinext";
 import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { sites } from "./build/sites-vite-plugin";
+import { localDemoIndex } from "./build/local-demo-index";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
@@ -45,15 +46,19 @@ export default defineConfig(async () => {
 
   return {
     server: {
+      host: "127.0.0.1",
+      port: 3100,
+      strictPort: true,
       ...(isCodexSeatbeltSandbox
         ? { watch: { useFsEvents: false, usePolling: true } }
         : {}),
       proxy: {
-        "/api": { target: "http://127.0.0.1:4330" },
-        "/zhijing/api": { target: "http://127.0.0.1:4330" },
+        "/api": { target: "http://127.0.0.1:4430" },
+        "/zhijing/api": { target: "http://127.0.0.1:4430" },
       },
     },
     plugins: [
+      localDemoIndex(),
       vinext(),
       sites(),
       cloudflare({

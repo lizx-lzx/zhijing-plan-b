@@ -43,6 +43,7 @@ yarn-error.log*
 /public/demo/zhihu-motion-20260910/
 /work/
 /data/
+/data-plan-b/
 /test-results/
 /playwright-report/
 *.tsbuildinfo
