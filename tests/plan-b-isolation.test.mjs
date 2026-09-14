@@ -139,3 +139,24 @@ test("demo questionnaire saves preset rules and enters the workbench without mod
     /function saved\(p: Profile\)\s*\{\s*setProfile\(p\);\s*go\("workspace"\)/,
   );
 });
+
+test("demo formats stay directly switchable regardless of entry selection or resume history", () => {
+  const player = read("experiments/openmaic-preview/main.jsx");
+  const tabs = player.split('aria-label="观看方式"')[1].split("</div>")[0];
+  for (const [mode, label] of [
+    ["video", "视频"],
+    ["slides", "图解"],
+    ["audio", "音频"],
+    ["reading", "图文"],
+    ["overview", "全景图"],
+    ["practice", "互动"],
+  ]) {
+    assert.ok(tabs.includes(`["${mode}", "${label}"]`));
+  }
+  assert.match(tabs, /onClick=\{\(\) => switchMode\(key\)\}/);
+  assert.doesNotMatch(tabs, /<select|\.filter\(/);
+  assert.doesNotMatch(player, /visibleModes|query\.get\("formats"\)|zhijing-demo-formats/);
+  // The chosen main format and the shared learning position still drive entry/switching.
+  assert.match(player, /const requested = query\.get\("mode"\)/);
+  assert.match(player, /setTime\(position\);\s*setMode\(next\)/);
+});

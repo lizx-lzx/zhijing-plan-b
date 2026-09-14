@@ -18,7 +18,6 @@ import "./room.css";
 import { narrativeSlide } from "./narrative-slide.mjs";
 import { chapters as articleChapters } from "./lessons/window-five-years/content.mjs";
 import originalText from "./lessons/window-five-years/original.txt?raw";
-import { demoLabels } from "../../lib/demo-route";
 
 const query = new URLSearchParams(location.search);
 const capture = query.has("capture"),
@@ -61,25 +60,6 @@ function scrollToContent(selector) {
 
 function App() {
   useExperienceShortcut("/zhijing");
-  const [visibleModes, setVisibleModes] = useState(() => {
-    let value = query.get("formats");
-    if (!value && query.has("resume")) {
-      try {
-        value = localStorage.getItem("zhijing-demo-formats");
-      } catch {}
-    }
-    const requested = value?.split(",").filter((m) => demoLabels[m]);
-    return !requested?.length || value === "all"
-      ? Object.keys(demoLabels)
-      : [...new Set([...requested, query.get("mode") || "video"])];
-  });
-  useEffect(() => {
-    if (query.get("experience") === "demo") {
-      try {
-        localStorage.setItem("zhijing-demo-formats", visibleModes.join(","));
-      } catch {}
-    }
-  }, [visibleModes]);
   const [time, setTime] = useState(() => {
     if (capture || query.get("experience") !== "demo") return 0;
     try {
@@ -505,45 +485,20 @@ function App() {
                   ["audio", "只听音频"],
                   ["reading", "文字梳理"],
                 ]
-            )
-              .filter(([key]) => visibleModes.includes(key))
-              .map(([key, label]) => (
-                <button
-                  key={key}
-                  data-mode={key}
-                  type="button"
-                  disabled={
-                    !timing.voiceReady && ["audio", "video"].includes(key)
-                  }
-                  aria-pressed={mode === key}
-                  onClick={() => switchMode(key)}
-                >
-                  {label}
-                </button>
-              ))}
-            {visibleModes.length < 6 && (
-              <select
-                aria-label="添加其他学习形式"
-                value=""
-                onChange={(e) => {
-                  const next = e.target.value;
-                  if (!demoLabels[next]) return;
-                  setVisibleModes((old) => [...old, next]);
-                  switchMode(next);
-                }}
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                data-mode={key}
+                type="button"
+                disabled={
+                  !timing.voiceReady && ["audio", "video"].includes(key)
+                }
+                aria-pressed={mode === key}
+                onClick={() => switchMode(key)}
               >
-                <option value="" disabled>
-                  其他形式＋
-                </option>
-                {Object.entries(demoLabels)
-                  .filter(([key]) => !visibleModes.includes(key))
-                  .map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
-              </select>
-            )}
+                {label}
+              </button>
+            ))}
           </div>
           <button
             className="mobile-chapter-trigger"
