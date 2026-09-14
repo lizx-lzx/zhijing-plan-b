@@ -145,15 +145,12 @@ test("welcome, preference examples and private library covers use real visual as
     const html = renderToStaticMarkup(
       createElement(Welcome, { onStart() {}, returning: true }),
     );
-    assert.match(html, /window-cover.jpg/);
-    assert.match(
-      html,
-      /zhihu-window-20260908\/\?ui=case-entry-20260910&amp;mode=overview/,
-    );
+    assert.match(html, /reading-nook-v1.webp/);
+    assert.doesNotMatch(html, /z-featured-work|window-cover.jpg|\/demo\/|窗口期可能只剩五年/);
     assert.doesNotMatch(html, /原有作品保留|z-journey-strip|z-learning-hero/);
     assert.match(html, /找到我的学法/);
     assert.match(html, /8 题 · 约 2 分钟/);
-    assert.match(html, /<span>示例<\/span>/);
+    assert.doesNotMatch(html, /<span>示例<\/span>/);
     assert.doesNotMatch(html, /学习作品 · 示例/);
     assert.ok((await stat("public/images/window-cover.jpg")).size < 100000);
     assert.doesNotMatch(
