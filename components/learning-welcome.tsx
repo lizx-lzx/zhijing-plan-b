@@ -1,4 +1,3 @@
-/* Featured cover from the published work, not a mock player. */
 /* eslint-disable @next/next/no-img-element */
 import { ArrowRight } from "lucide-react";
 import StaggeredText from "./react-bits/staggered-text";
@@ -56,25 +55,6 @@ export function Welcome({
           />
         </div>
       </section>
-      <a
-        className="z-featured-work"
-        href={`${base}/demo/zhihu-window-20260908/?ui=case-entry-20260910&mode=overview`}
-        aria-label="查看学习作品示例：窗口期可能只剩五年"
-      >
-        <div className="z-featured-cover">
-          <img
-            src={`${base}/images/window-cover.jpg?v=rice-20260910`}
-            width={1280}
-            height={720}
-            alt="作品中的思想实验：企业提效与家庭收入为什么可能不同步"
-          />
-        </div>
-        <div className="z-featured-caption">
-          <span>示例</span>
-          <h2>窗口期可能只剩五年</h2>
-          <ArrowRight size={24} aria-hidden="true" />
-        </div>
-      </a>
     </main>
   );
 }

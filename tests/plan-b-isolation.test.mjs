@@ -160,3 +160,14 @@ test("demo formats stay directly switchable regardless of entry selection or res
   assert.match(player, /const requested = query\.get\("mode"\)/);
   assert.match(player, /setTime\(position\);\s*setMode\(next\)/);
 });
+
+test("welcome starts the learning flow without a featured demo shortcut", () => {
+  const welcome = read("components/learning-welcome.tsx");
+  assert.match(welcome, /找到我的学法/);
+  assert.match(welcome, /onClick=\{onStart\}/);
+  assert.doesNotMatch(welcome, /z-featured-work|\/demo\/|窗口期可能只剩五年|学习作品示例/);
+  const workbench = read("components/learning-workbench.tsx");
+  assert.match(workbench, /demoVisited &&/);
+  assert.match(workbench, /上回读到/);
+  assert.match(workbench, /demoStudyUrl\(base, resumeMode, true\)/);
+});
