@@ -120,3 +120,22 @@ test("upstream deployment scripts stop before any legacy action", () => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Plan B.*已禁用/);
 });
+
+test("demo questionnaire saves preset rules and enters the workbench without model generation", () => {
+  const onboarding = read("components/learning-onboarding.tsx").split(
+    "export function Onboarding",
+  )[1];
+  assert.match(onboarding, /profile: buildProfile\(answers\)/);
+  assert.match(onboarding, /"\/profile", "PUT"/);
+  assert.match(onboarding, /onSave\(data.profile\)/);
+  assert.match(onboarding, /进入待启集/);
+  assert.doesNotMatch(
+    onboarding,
+    /\/profile\/design|<SkillEditor|setDraft|生成我的学习方式/,
+  );
+  const app = read("components/learning-app.tsx");
+  assert.match(
+    app,
+    /function saved\(p: Profile\)\s*\{\s*setProfile\(p\);\s*go\("workspace"\)/,
+  );
+});

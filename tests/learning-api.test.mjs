@@ -102,6 +102,7 @@ test("HTTP contract: persistence, isolation, CSRF, recovery and honest failure",
     await t.test("profile is persisted and private", async () => {
       assert.equal((await a("/profile", "PUT", { profile })).status, 200);
       assert.equal((await a("/me")).data.profile.answers.entry, "story");
+      assert.equal((await a("/me")).data.profile.engine, "rules");
       assert.equal((await b("/me")).data.profile, null);
     });
     await t.test("cross-origin writes fail", async () => {

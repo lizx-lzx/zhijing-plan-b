@@ -199,32 +199,26 @@ export function Onboarding({
       initial || { ...defaultAnswers },
     ),
     [step, setStep] = useState(0),
-    [draft, setDraft] = useState<Profile | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const q = questions[step];
-  async function design() {
+  async function finish() {
+    if (busy) return;
     setBusy(true);
     setError("");
     try {
-      const data = await api<{ profile: Profile }>("/profile/design", "POST", {
-        answers,
+      // Plan B is a demonstration: use the preset rule templates immediately.
+      // Keep selected preferences, but never wait for a model or a second save page.
+      const data = await api<{ profile: Profile }>("/profile", "PUT", {
+        profile: buildProfile(answers),
       });
-      setDraft(data.profile);
+      onSave(data.profile);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
-  if (draft)
-    return (
-      <SkillEditor
-        profile={draft}
-        onSave={onSave}
-        onBack={() => setDraft(null)}
-      />
-    );
   return (
     <main
       className={`z-onboarding z-container-small${q.id === "entry" ? " z-onboarding-entry" : ""}`}
@@ -373,26 +367,18 @@ export function Onboarding({
           <button
             className="button button-primary button-large"
             disabled={busy}
-            onClick={() => (step === 7 ? void design() : setStep(step + 1))}
+            onClick={() => (step === 7 ? void finish() : setStep(step + 1))}
           >
             {busy ? (
-              <Spinner text="正在整理你的学习方式" />
+              <Spinner text="正在进入" />
             ) : step === 7 ? (
-              "生成我的学习方式"
+              "进入待启集"
             ) : (
               "下一步"
             )}
             {!busy && <ArrowRight size={17} />}
           </button>
         </div>
-        {error && step === 7 && (
-          <button
-            className="z-text-link"
-            onClick={() => setDraft(buildProfile(answers))}
-          >
-            先用基础规则继续，之后可以再调整
-          </button>
-        )}
       </section>
     </main>
   );
