@@ -130,7 +130,7 @@ export function demoLifeReply(context, history, notes, question, choice) {
   if (choice === "feedback") {
     return finish(
       notes.length
-        ? "我们回看你已经收下的那一步。实际试的时候，哪一点帮上了忙，哪一点和想象的不一样？\n\n你可以接着说，也可以在右边的记录里写下反馈。"
+        ? "我们回看你已经收下的那一步。实际试的时候，哪一点帮上了忙，哪一点和想象的不一样？\n\n你可以接着说，也可以打开“我的记录”写下反馈。"
         : "试过之后的感受，比计划写得漂亮更重要。实际发生了什么？哪一步顺利，哪一步卡住了？",
       [],
       routeId,
@@ -140,7 +140,7 @@ export function demoLifeReply(context, history, notes, question, choice) {
   }
   if (last.stage === "reflection")
     return finish(
-      "这段实践经过已经留在对话里。你可以把其中最重要的一点，写进右边“后来怎么样了”，再决定保留原做法、缩小一步，还是先放一放。\n\n不必把一次尝试解释成成功或失败，先留下实际发生的变化。",
+      "这段实践经过已经留在对话里。你可以把其中最重要的一点，写进记录的“后来怎么样了”，再决定保留原做法、缩小一步，还是先放一放。\n\n不必把一次尝试解释成成功或失败，先留下实际发生的变化。",
       followups,
       routeId,
       null,
@@ -177,6 +177,6 @@ export function demoLifeReply(context, history, notes, question, choice) {
   const opening =
     last.stage === "paused"
       ? "我们接着上次的方向，把下一步重新摆在这里。"
-      : "先试一个可以随时停下的小步骤。右边的记录不是任务指标，只是给未来的自己留个落点。";
+      : "先试一个可以随时停下的小步骤。这张记录不是任务指标，只是给未来的自己留个落点。";
   return finish(opening, followups, routeId, suggestion, "plan");
 }

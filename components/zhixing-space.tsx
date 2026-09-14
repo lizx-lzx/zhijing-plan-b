@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowUpRight, BookOpen, Plus, Send, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { api, base, Brand } from "./learning-ui";
 import {
   emptyLifeNote,
@@ -66,6 +67,13 @@ export default function ZhixingSpace() {
   const [rename, setRename] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [replyBusy, setReplyBusy] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [returning, setReturning] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const panel = useRef<HTMLElement>(null);
+  const composer = useRef<HTMLTextAreaElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const mounted = useRef(true);
   const sending = useRef(false);
@@ -112,6 +120,10 @@ export default function ZhixingSpace() {
       setEditor(null);
       setRename(null);
       setNotice("");
+      setReturning(data.turns.length > 0);
+      setHistoryOpen(false);
+      setArchiveOpen(false);
+      setPanelOpen(false);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -140,8 +152,10 @@ export default function ZhixingSpace() {
           current = await api<LifeSpace>(`/zhixing/${data.spaces[0].id}`);
         }
         if (active) {
-          if (current) accept(current);
-          else restoreDraft("new");
+          if (current) {
+            accept(current);
+            setReturning(current.turns.length > 0);
+          } else restoreDraft("new");
         }
       } catch (e) {
         if (active) setError((e as Error).message);
@@ -165,9 +179,31 @@ export default function ZhixingSpace() {
     }
   }
   const lastTurnStatus = space?.turns.at(-1)?.status;
+  const editingNote = editor !== null;
   useEffect(() => {
-    bottom.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
-  }, [space?.turns.length, lastTurnStatus]);
+    if (!returning && space?.turns.length)
+      bottom.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
+  }, [space?.turns.length, lastTurnStatus, returning]);
+  useEffect(() => {
+    if (panelOpen) {
+      panel.current?.scrollIntoView({ block: "start", behavior: "instant" });
+      if (editingNote)
+        panel.current
+          ?.querySelector<HTMLInputElement>("input")
+          ?.focus({ preventScroll: true });
+    }
+  }, [panelOpen, editingNote, editor?.id]);
+  useEffect(() => {
+    const input = composer.current;
+    if (!input) return;
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 180)}px`;
+  }, [question]);
+  function openEditor(note: LifeNote) {
+    setEditor(note);
+    setTab("notes");
+    setPanelOpen(true);
+  }
   async function newScene() {
     if (busy) return;
     setBusy(true);
@@ -181,6 +217,10 @@ export default function ZhixingSpace() {
       setEditor(null);
       setRename(null);
       setNotice("");
+      setReturning(false);
+      setHistoryOpen(false);
+      setArchiveOpen(false);
+      setPanelOpen(false);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -193,6 +233,7 @@ export default function ZhixingSpace() {
       [question.trim(), choice?.label].filter(Boolean).join("\n");
     if (sending.current || busy || !text || !index) return;
     sending.current = true;
+    setReturning(false);
     setReplyBusy(true);
     setBusy(true);
     setError("");
@@ -288,7 +329,18 @@ export default function ZhixingSpace() {
       `${s.title} ${s.context.title}`.includes(search.trim()),
     ) || [];
   return (
-    <main className="life-app">
+    <main
+      className="life-app"
+      data-phase={
+        !space?.turns.length
+          ? "arrival"
+          : editor
+            ? "reflect"
+            : space.notes.length
+              ? "saved"
+              : "conversation"
+      }
+    >
       <header className="life-header">
         <a href={`${base}/`} aria-label="回到知径">
           <Brand />
@@ -303,46 +355,95 @@ export default function ZhixingSpace() {
         </a>
       </header>
       <div className="life-layout" aria-busy={busy || boot}>
-        <aside className="life-scenes">
-          <details open>
-            <summary>我的知行</summary>
-            <button
-              type="button"
-              className="life-new"
-              onClick={() => void newScene()}
-              disabled={busy || boot}
+        <div className="life-tools">
+          <button
+            type="button"
+            aria-expanded={archiveOpen}
+            onClick={() => setArchiveOpen(!archiveOpen)}
+          >
+            我的知行 <span aria-hidden="true">{archiveOpen ? "−" : "+"}</span>
+          </button>
+          {space && (
+            <div>
+              <button
+                type="button"
+                aria-expanded={panelOpen && tab === "source"}
+                onClick={() => {
+                  setTab("source");
+                  setPanelOpen(!(panelOpen && tab === "source"));
+                }}
+              >
+                文章线索
+              </button>
+              <button
+                type="button"
+                aria-expanded={panelOpen && tab === "notes"}
+                onClick={() => {
+                  setTab("notes");
+                  setPanelOpen(!(panelOpen && tab === "notes"));
+                }}
+              >
+                我的记录{space.notes.length ? ` · ${space.notes.length}` : ""}
+              </button>
+            </div>
+          )}
+        </div>
+        <AnimatePresence initial={false}>
+          {archiveOpen && (
+            <motion.aside
+              key="scenes"
+              className="life-scenes"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.25 }}
             >
-              <Plus size={17} />
-              聊另一件事
-            </button>
-            <input
-              aria-label="查找知行场景"
-              placeholder="找一件事"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <nav aria-label="知行场景">
-              {filtered.map((item) => (
+              <details open>
+                <summary>我的知行</summary>
                 <button
                   type="button"
-                  key={item.id}
-                  aria-current={space?.id === item.id ? "page" : undefined}
-                  onClick={() => void loadScene(item.id)}
-                  disabled={busy}
+                  className="life-new"
+                  onClick={() => void newScene()}
+                  disabled={busy || boot}
                 >
-                  <strong>{item.title}</strong>
-                  <span>{item.context.title}</span>
+                  <Plus size={17} />
+                  聊另一件事
                 </button>
-              ))}
-            </nav>
-            {!filtered.length && !boot && (
-              <p className="life-muted">
-                {search ? "还没找到这件事。" : "从眼前的一件事开始。"}
-              </p>
-            )}
-          </details>
-        </aside>
-        <section className="life-conversation" aria-label="知行对话">
+                <input
+                  aria-label="查找知行场景"
+                  placeholder="找一件事"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <nav aria-label="知行场景">
+                  {filtered.map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      aria-current={space?.id === item.id ? "page" : undefined}
+                      onClick={() => void loadScene(item.id)}
+                      disabled={busy}
+                    >
+                      <strong>{item.title}</strong>
+                      <span>{item.context.title}</span>
+                    </button>
+                  ))}
+                </nav>
+                {!filtered.length && !boot && (
+                  <p className="life-muted">
+                    {search ? "还没找到这件事。" : "从眼前的一件事开始。"}
+                  </p>
+                )}
+              </details>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+        <motion.section
+          className="life-conversation"
+          aria-label="知行对话"
+          initial={false}
+          animate={{ opacity: 1 }}
+        >
           <div className="life-scene-heading">
             {rename !== null ? (
               <form
@@ -369,7 +470,7 @@ export default function ZhixingSpace() {
                     ? space.title
                     : "让读到的，走进生活。"}
                 </h1>
-                {space && (
+                {space && !!space.turns.length && (
                   <button
                     type="button"
                     className="life-text-button"
@@ -394,64 +495,116 @@ export default function ZhixingSpace() {
                 <span className="life-sprout" aria-hidden="true">
                   ✳
                 </span>
-                <h2>
-                  最近有什么事，
-                  <br />
-                  想在这里一起想想？
-                </h2>
-                <p>从你的处境说起，不必先整理好。</p>
+                <p>最近有什么事，想一起想想？</p>
               </div>
             )}
-            {space?.turns.map((turn) => (
-              <article className="life-turn" key={turn.id}>
-                <div className="life-user">
-                  <span>你</span>
-                  <p>{turn.question}</p>
-                </div>
-                {turn.reply && (
-                  <div className="life-answer">
-                    <span>知行</span>
-                    <p>{turn.reply.answer}</p>
-                    <Evidence entries={turn.reply.citations} />
-                    {turn.reply.suggestion && (
-                      <section className="life-suggestion">
-                        <h3>{turn.reply.suggestion.title}</h3>
-                        <p>{turn.reply.suggestion.understanding}</p>
-                        <strong>可以先试</strong>
-                        <p>{turn.reply.suggestion.action}</p>
-                        <strong>试后看看</strong>
-                        <p>{turn.reply.suggestion.check}</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditor({
-                              ...emptyLifeNote(),
-                              ...turn.reply!.suggestion!,
-                            });
-                            setTab("notes");
-                          }}
-                          disabled={busy}
-                        >
-                          整理后收进知行 <ArrowUpRight size={15} />
-                        </button>
-                      </section>
-                    )}
-                  </div>
+            {returning && space && space.turns.length > 0 && (
+              <section className="life-resume">
+                <span>接着上次</span>
+                <h2>{space.notes[0]?.title || space.title}</h2>
+                <p>
+                  {space.notes[0]?.action || "我们聊到的想法，还留在这里。"}
+                </p>
+                {space.notes[0]?.reflection && (
+                  <p className="life-resume-feedback">
+                    {space.notes[0].reflection}
+                  </p>
                 )}
-                {turn.status !== "complete" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReturning(false);
+                    composer.current?.focus({ preventScroll: true });
+                  }}
+                >
+                  接着聊 <ArrowUpRight size={16} />
+                </button>
+                {space.notes[0] && (
                   <button
-                    className="life-text-button"
-                    disabled={busy}
-                    onClick={() => void send(turn)}
+                    type="button"
+                    onClick={() => openEditor(space.notes[0])}
                   >
-                    {turn.status === "failed"
-                      ? "重新整理这条"
-                      : "从这件事继续聊"}
+                    记下反馈
                   </button>
                 )}
-              </article>
-            ))}
-            {!boot && (
+              </section>
+            )}
+            {returning && !!space?.turns.length && (
+              <button
+                className="life-history-toggle"
+                type="button"
+                aria-expanded={historyOpen}
+                onClick={() => setHistoryOpen(!historyOpen)}
+              >
+                {historyOpen
+                  ? "收起之前的对话"
+                  : `展开之前的对话 · ${space.turns.length}`}
+              </button>
+            )}
+            {(!returning || historyOpen) &&
+              space?.turns.map((turn) => (
+                <motion.article
+                  className="life-turn"
+                  key={turn.id}
+                  initial={{ opacity: 0, y: reducedMotion ? 0 : 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.35 }}
+                >
+                  <div className="life-user">
+                    <span>你</span>
+                    <p>{turn.question}</p>
+                  </div>
+                  {turn.reply && (
+                    <div className="life-answer">
+                      <span>知行</span>
+                      <p>{turn.reply.answer}</p>
+                      <Evidence entries={turn.reply.citations} />
+                      {turn.reply.suggestion && (
+                        <motion.section
+                          className="life-suggestion"
+                          initial={{
+                            opacity: 0,
+                            scale: reducedMotion ? 1 : 0.97,
+                          }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: reducedMotion ? 0 : 0.4 }}
+                        >
+                          <h3>{turn.reply.suggestion.title}</h3>
+                          <p>{turn.reply.suggestion.understanding}</p>
+                          <strong>可以先试</strong>
+                          <p>{turn.reply.suggestion.action}</p>
+                          <strong>试后看看</strong>
+                          <p>{turn.reply.suggestion.check}</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openEditor({
+                                ...emptyLifeNote(),
+                                ...turn.reply!.suggestion!,
+                              });
+                            }}
+                            disabled={busy}
+                          >
+                            整理后收进知行 <ArrowUpRight size={15} />
+                          </button>
+                        </motion.section>
+                      )}
+                    </div>
+                  )}
+                  {turn.status !== "complete" && (
+                    <button
+                      className="life-text-button"
+                      disabled={busy}
+                      onClick={() => void send(turn)}
+                    >
+                      {turn.status === "failed"
+                        ? "重新整理这条"
+                        : "从这件事继续聊"}
+                    </button>
+                  )}
+                </motion.article>
+              ))}
+            {!boot && !returning && (
               <div className="life-demo-choices" aria-label="继续对话">
                 {(space?.turns.length
                   ? space.turns.at(-1)?.reply?.choices || []
@@ -479,6 +632,7 @@ export default function ZhixingSpace() {
               }}
             >
               <textarea
+                ref={composer}
                 aria-label="说说你的处境"
                 placeholder={
                   space?.turns.length
@@ -511,203 +665,226 @@ export default function ZhixingSpace() {
               </p>
             )}
           </div>
-        </section>
-        <aside className="life-knowledge" aria-label="知行知识记录">
-          <div className="life-tabs">
-            <button
-              aria-pressed={tab === "notes"}
-              onClick={() => setTab("notes")}
+        </motion.section>
+        <AnimatePresence initial={false}>
+          {panelOpen && (
+            <motion.aside
+              key="knowledge"
+              ref={panel}
+              className="life-knowledge"
+              aria-label="知行知识记录"
+              initial={{ opacity: 0, y: reducedMotion ? 0 : 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
+              transition={{ duration: reducedMotion ? 0 : 0.25 }}
             >
-              我的记录
-            </button>
-            <button
-              aria-pressed={tab === "source"}
-              onClick={() => setTab("source")}
-            >
-              文章线索
-            </button>
-          </div>
-          {tab === "source" ? (
-            <div className="life-source-list">
-              {space?.context.evidence.map((entry) => (
-                <article key={entry.id}>
-                  <h3>{entry.title}</h3>
-                  <blockquote>{entry.quote}</blockquote>
-                  <span className="life-muted">{entry.kind}</span>
-                  {entry.interpretation && (
-                    <details>
-                      <summary>学习讲解</summary>
-                      <p>{entry.interpretation}</p>
-                    </details>
-                  )}
-                  <button
-                    className="life-text-button"
-                    disabled={busy}
-                    onClick={() => {
-                      setEditor({
-                        ...emptyLifeNote(),
-                        title: entry.title,
-                        citations: [entry],
-                      });
-                      setTab("notes");
-                    }}
-                  >
-                    记下我的理解 ↗
-                  </button>
-                </article>
-              ))}
-              {!space?.context.evidence.length && (
-                <p className="life-muted">
-                  从文章里的猫猫进入，会带上那篇文章。
-                </p>
-              )}
-            </div>
-          ) : (
-            <>
-              {editor ? (
-                <form
-                  className="life-note-editor"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void saveNote();
-                  }}
+              <button
+                className="life-panel-close"
+                type="button"
+                aria-label="收起知识记录"
+                onClick={() => {
+                  setPanelOpen(false);
+                  composer.current?.focus({ preventScroll: true });
+                }}
+              >
+                <X size={18} />
+              </button>
+              <div className="life-tabs">
+                <button
+                  aria-pressed={tab === "notes"}
+                  onClick={() => setTab("notes")}
                 >
-                  <div className="life-editor-heading">
-                    <h2>{editor.id ? "更新这条记录" : "留下自己的一步"}</h2>
-                    <button
-                      type="button"
-                      aria-label="取消编辑记录"
-                      onClick={() => setEditor(null)}
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                  <label>
-                    给它一个名字
-                    <input
-                      aria-label="记录标题"
-                      maxLength={80}
-                      required
-                      value={editor.title}
-                      onChange={(e) =>
-                        setEditor({ ...editor, title: e.target.value })
-                      }
-                    />
-                  </label>
-                  {(
-                    [
-                      ["understanding", "我的理解", 2000],
-                      ["action", "先试的一步", 1500],
-                      ["check", "试后观察什么", 1000],
-                      ["reflection", "后来怎么样了", 3000],
-                    ] as const
-                  ).map(([field, label, max]) => (
-                    <label key={field}>
-                      {label}
-                      <textarea
-                        aria-label={label}
-                        maxLength={max}
-                        value={editor[field]}
-                        onChange={(e) =>
-                          setEditor({ ...editor, [field]: e.target.value })
-                        }
-                      />
-                    </label>
-                  ))}
-                  <label>
-                    现在的状态
-                    <select
-                      aria-label="实践状态"
-                      value={editor.status}
-                      onChange={(e) =>
-                        setEditor({
-                          ...editor,
-                          status: e.target.value as LifeNote["status"],
-                        })
-                      }
-                    >
-                      <option value="planned">准备试试</option>
-                      <option value="tried">试过了</option>
-                      <option value="paused">先放一放</option>
-                    </select>
-                  </label>
-                  <Evidence entries={editor.citations} />
-                  <button
-                    className="life-save"
-                    disabled={busy || !editor.title.trim()}
-                  >
-                    {editor.id ? "保存更新" : "确认收进知行"}
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <div className="life-notes-heading">
-                    <h2>留给自己的收获</h2>
-                    <button
-                      className="life-text-button"
-                      disabled={!space || busy}
-                      onClick={() => setEditor(emptyLifeNote())}
-                    >
-                      <Plus size={16} />
-                      记一笔
-                    </button>
-                  </div>
-                  {!space?.notes.length && (
-                    <div className="life-empty-note">
-                      <p>
-                        一个理解、一次尝试，
-                        <br />
-                        以及试过之后的发现。
-                      </p>
-                      <span>由你确认，才收在这里。</span>
-                    </div>
-                  )}
-                  {space?.notes.map((note) => (
-                    <article className="life-note" key={note.id}>
-                      <span className="life-note-status">
-                        {
-                          {
-                            planned: "准备试试",
-                            tried: "试过了",
-                            paused: "先放一放",
-                          }[note.status]
-                        }
-                      </span>
-                      <h3>{note.title}</h3>
-                      {note.understanding && <p>{note.understanding}</p>}
-                      {note.action && (
-                        <p>
-                          <strong>我的一步</strong>
-                          {note.action}
-                        </p>
+                  我的记录
+                </button>
+                <button
+                  aria-pressed={tab === "source"}
+                  onClick={() => setTab("source")}
+                >
+                  文章线索
+                </button>
+              </div>
+              {tab === "source" ? (
+                <div className="life-source-list">
+                  {space?.context.evidence.map((entry) => (
+                    <article key={entry.id}>
+                      <h3>{entry.title}</h3>
+                      <blockquote>{entry.quote}</blockquote>
+                      <span className="life-muted">{entry.kind}</span>
+                      {entry.interpretation && (
+                        <details>
+                          <summary>学习讲解</summary>
+                          <p>{entry.interpretation}</p>
+                        </details>
                       )}
-                      {note.check && (
-                        <p>
-                          <strong>观察点</strong>
-                          {note.check}
-                        </p>
-                      )}
-                      {note.reflection && (
-                        <p>
-                          <strong>后来的发现</strong>
-                          {note.reflection}
-                        </p>
-                      )}
-                      <Evidence entries={note.citations} />
                       <button
                         className="life-text-button"
                         disabled={busy}
-                        onClick={() => setEditor(note)}
+                        onClick={() => {
+                          openEditor({
+                            ...emptyLifeNote(),
+                            title: entry.title,
+                            citations: [entry],
+                          });
+                        }}
                       >
-                        编辑 · 记下反馈
+                        记下我的理解 ↗
                       </button>
                     </article>
                   ))}
+                  {!space?.context.evidence.length && (
+                    <p className="life-muted">
+                      从文章里的猫猫进入，会带上那篇文章。
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {editor ? (
+                    <form
+                      className="life-note-editor"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void saveNote();
+                      }}
+                    >
+                      <div className="life-editor-heading">
+                        <h2>{editor.id ? "更新这条记录" : "留下自己的一步"}</h2>
+                        <button
+                          type="button"
+                          aria-label="取消编辑记录"
+                          onClick={() => setEditor(null)}
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                      <label>
+                        给它一个名字
+                        <input
+                          aria-label="记录标题"
+                          maxLength={80}
+                          required
+                          value={editor.title}
+                          onChange={(e) =>
+                            setEditor({ ...editor, title: e.target.value })
+                          }
+                        />
+                      </label>
+                      {(
+                        [
+                          ["understanding", "我的理解", 2000],
+                          ["action", "先试的一步", 1500],
+                          ["check", "试后观察什么", 1000],
+                          ["reflection", "后来怎么样了", 3000],
+                        ] as const
+                      ).map(([field, label, max]) => (
+                        <label key={field}>
+                          {label}
+                          <textarea
+                            aria-label={label}
+                            maxLength={max}
+                            value={editor[field]}
+                            onChange={(e) =>
+                              setEditor({ ...editor, [field]: e.target.value })
+                            }
+                          />
+                        </label>
+                      ))}
+                      <label>
+                        现在的状态
+                        <select
+                          aria-label="实践状态"
+                          value={editor.status}
+                          onChange={(e) =>
+                            setEditor({
+                              ...editor,
+                              status: e.target.value as LifeNote["status"],
+                            })
+                          }
+                        >
+                          <option value="planned">准备试试</option>
+                          <option value="tried">试过了</option>
+                          <option value="paused">先放一放</option>
+                        </select>
+                      </label>
+                      <Evidence entries={editor.citations} />
+                      <button
+                        className="life-save"
+                        disabled={busy || !editor.title.trim()}
+                      >
+                        {editor.id ? "保存更新" : "确认收进知行"}
+                      </button>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="life-notes-heading">
+                        <h2>留给自己的收获</h2>
+                        <button
+                          className="life-text-button"
+                          disabled={!space || busy}
+                          onClick={() => openEditor(emptyLifeNote())}
+                        >
+                          <Plus size={16} />
+                          记一笔
+                        </button>
+                      </div>
+                      {!space?.notes.length && (
+                        <div className="life-empty-note">
+                          <p>
+                            一个理解、一次尝试，
+                            <br />
+                            以及试过之后的发现。
+                          </p>
+                          <span>由你确认，才收在这里。</span>
+                        </div>
+                      )}
+                      {space?.notes.map((note) => (
+                        <article className="life-note" key={note.id}>
+                          <span className="life-note-status">
+                            {
+                              {
+                                planned: "准备试试",
+                                tried: "试过了",
+                                paused: "先放一放",
+                              }[note.status]
+                            }
+                          </span>
+                          <h3>{note.title}</h3>
+                          {note.understanding && <p>{note.understanding}</p>}
+                          {note.action && (
+                            <p>
+                              <strong>我的一步</strong>
+                              {note.action}
+                            </p>
+                          )}
+                          {note.check && (
+                            <p>
+                              <strong>观察点</strong>
+                              {note.check}
+                            </p>
+                          )}
+                          {note.reflection && (
+                            <p>
+                              <strong>后来的发现</strong>
+                              {note.reflection}
+                            </p>
+                          )}
+                          <Evidence entries={note.citations} />
+                          <button
+                            className="life-text-button"
+                            disabled={busy}
+                            onClick={() => openEditor(note)}
+                          >
+                            编辑 · 记下反馈
+                          </button>
+                        </article>
+                      ))}
+                    </>
+                  )}
                 </>
               )}
-            </>
+            </motion.aside>
           )}
-        </aside>
+        </AnimatePresence>
       </div>
     </main>
   );

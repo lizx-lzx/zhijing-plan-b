@@ -17,6 +17,19 @@ const context = {
     quote: `source ${id}`,
   })),
 };
+test("conversation progressively reveals panels and restores the latest step without a fixed-height window", async () => {
+  const ui = await fs.readFile("components/zhixing-space.tsx", "utf8");
+  const css = await fs.readFile("app/zhixing.css", "utf8");
+  assert.match(ui, /panelOpen &&/);
+  assert.match(ui, /archiveOpen &&/);
+  assert.match(ui, /returning &&/);
+  assert.match(ui, /接着上次/);
+  assert.match(ui, /useReducedMotion/);
+  assert.match(ui, /<motion\.article/);
+  assert.match(ui, /<motion\.section className="life-suggestion"|<motion\.section\s+className="life-suggestion"/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.doesNotMatch(css, /height:\s*(?:calc\(100dvh|75dvh|80dvh|570px|600px)/);
+});
 test("three authored demo routes yield different plans without a model or invented experience", () => {
   assert.deepEqual(clientChoices, lifeDemoChoices);
   const answers = [];
