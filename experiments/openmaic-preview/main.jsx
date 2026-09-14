@@ -18,6 +18,7 @@ import "./room.css";
 import { narrativeSlide } from "./narrative-slide.mjs";
 import { chapters as articleChapters } from "./lessons/window-five-years/content.mjs";
 import originalText from "./lessons/window-five-years/original.txt?raw";
+import { zhixingEntry } from "../../lib/zhixing";
 
 const query = new URLSearchParams(location.search);
 const capture = query.has("capture"),
@@ -62,6 +63,7 @@ function App() {
   useExperienceShortcut("/zhijing");
   const [time, setTime] = useState(() => {
     if (capture || query.get("experience") !== "demo") return 0;
+    if (query.has("at")) return clampTime(Number(query.get("at")), duration);
     try {
       return clampTime(
         Number(localStorage.getItem("zhijing-demo-time")) || 0,
@@ -959,6 +961,16 @@ function App() {
       </main>
       {!capture && (
         <ReadingCompanion
+          lifeHref={zhixingEntry("/zhijing", {
+            article: "window-five-years",
+            chapter: scene.id,
+            mode,
+            at: time,
+          })}
+          onLife={() => {
+            video.current?.pause();
+            audio.current?.pause();
+          }}
           target={null}
           onSource={() => {}}
           studyContext={{

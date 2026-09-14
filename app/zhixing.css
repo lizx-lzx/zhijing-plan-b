@@ -1,0 +1,679 @@
+.life-app {
+  --life-ink: #35332d;
+  --life-muted: #827b6f;
+  --life-line: #e6dccd;
+  --life-accent: #a54732;
+  min-height: 100dvh;
+  background: #f5f0e6;
+  color: var(--life-ink);
+  font-family: var(--font-geist-sans), "PingFang SC", sans-serif;
+  padding: 0 clamp(16px, 3vw, 48px) 24px;
+}
+.life-app * {
+  box-sizing: border-box;
+}
+.life-app button,
+.life-app a,
+.life-app input,
+.life-app textarea,
+.life-app select {
+  font: inherit;
+}
+.life-app button,
+.life-app a {
+  touch-action: manipulation;
+}
+.life-app button {
+  cursor: pointer;
+}
+.life-app button:disabled {
+  cursor: default;
+  opacity: 0.48;
+}
+.life-app button:focus-visible,
+.life-app a:focus-visible,
+.life-app input:focus-visible,
+.life-app textarea:focus-visible,
+.life-app select:focus-visible {
+  outline: 2px solid var(--life-accent);
+  outline-offset: 3px;
+}
+.life-app a {
+  color: inherit;
+  text-decoration: none;
+}
+.life-header {
+  height: 92px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  border-bottom: 1px solid var(--life-line);
+  margin-bottom: 24px;
+}
+.life-header .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.life-header .brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: #ac4630;
+  color: #fff8ef;
+  padding: 7px;
+}
+.life-header .brand-copy strong {
+  font-family: "Songti SC", serif;
+  font-size: 24px;
+}
+.life-wordmark {
+  padding-left: 26px;
+  border-left: 1px solid #d8cbbb;
+  color: #8a6651;
+  letter-spacing: 0.2em;
+}
+.life-demo-label {
+  font-size: 11px;
+  color: #887a66;
+  background: #eae2d3;
+  border-radius: 5px;
+  padding: 4px 7px;
+}
+.life-demo-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 18px 0 5px;
+}
+.life-demo-choices button {
+  background: #f5f0e6;
+  border: 1px solid #ded3c0;
+  border-radius: 20px;
+  color: #7e5e47;
+  padding: 9px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.life-demo-choices button:hover {
+  background: #e9dfce;
+}
+.life-return {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  color: var(--life-muted) !important;
+}
+.life-layout {
+  display: grid;
+  grid-template-columns: 210px minmax(320px, 1fr) 320px;
+  gap: 22px;
+  max-width: 1660px;
+  margin: auto;
+  align-items: start;
+}
+.life-scenes {
+  padding: 20px 6px 0 0;
+}
+.life-scenes summary {
+  font-family: "Songti SC", serif;
+  font-size: 22px;
+  list-style: none;
+  margin-bottom: 20px;
+}
+.life-scenes summary::-webkit-details-marker {
+  display: none;
+}
+.life-new {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid #dcccba;
+  border-radius: 12px;
+  background: #fffaf2;
+  width: 100%;
+  padding: 13px 14px;
+  color: #97503b;
+}
+.life-scenes input {
+  width: 100%;
+  margin: 17px 0 10px;
+  border: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--life-line);
+  padding: 10px 3px;
+  color: var(--life-ink);
+}
+.life-scenes nav {
+  max-height: calc(100dvh - 295px);
+  overflow: auto;
+}
+.life-scenes nav button {
+  width: 100%;
+  display: block;
+  border: 0;
+  text-align: left;
+  background: transparent;
+  border-radius: 12px;
+  padding: 14px 12px;
+  margin-bottom: 6px;
+}
+.life-scenes nav button[aria-current="page"] {
+  background: #eadecd;
+}
+.life-scenes nav strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.life-scenes nav span {
+  display: block;
+  font-size: 12px;
+  color: var(--life-muted);
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.life-conversation {
+  min-height: calc(100dvh - 141px);
+  height: calc(100dvh - 141px);
+  display: flex;
+  flex-direction: column;
+  background: #fffdf8;
+  border: 1px solid var(--life-line);
+  border-radius: 24px;
+  box-shadow: 0 12px 42px #745b3610;
+  overflow: hidden;
+}
+.life-scene-heading {
+  padding: 26px 30px 15px;
+  border-bottom: 1px solid #eee7dc;
+}
+.life-scene-heading h1 {
+  font-family: "Songti SC", "Noto Serif SC", serif;
+  font-weight: 600;
+  font-size: clamp(22px, 2vw, 30px);
+  margin: 0 0 8px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.life-scene-heading form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.life-scene-heading input {
+  min-width: 0;
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--life-line);
+  border-radius: 6px;
+}
+.life-scene-heading form button {
+  border: 0;
+  background: #eee5d9;
+  padding: 7px;
+  border-radius: 6px;
+}
+.life-article {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  color: var(--life-muted);
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+.life-messages {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 24px 30px;
+  scrollbar-gutter: stable;
+}
+.life-welcome {
+  padding: clamp(24px, 6vh, 80px) 0;
+}
+.life-sprout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #e8eddd;
+  color: #748366;
+  font-size: 32px;
+  animation: life-arrive 0.6s ease-out;
+}
+.life-welcome h2 {
+  font-family: "Songti SC", serif;
+  font-weight: 500;
+  font-size: clamp(24px, 2.6vw, 35px);
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+  margin: 20px 0 10px;
+}
+.life-welcome p,
+.life-muted {
+  color: var(--life-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.life-turn {
+  margin-bottom: 30px;
+  animation: life-arrive 0.25s ease-out;
+}
+.life-user {
+  background: #f0e9dc;
+  border-radius: 15px 15px 4px 15px;
+  padding: 15px 20px;
+  margin: 0 0 24px 26px;
+}
+.life-user > span,
+.life-answer > span {
+  font-size: 12px;
+  color: var(--life-muted);
+  display: block;
+  margin-bottom: 6px;
+}
+.life-turn p {
+  font-size: 15px;
+  line-height: 1.95;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.life-answer {
+  padding: 0 3px;
+}
+.life-suggestion {
+  margin-top: 18px;
+  padding: 18px 20px;
+  border: 1px solid #dce1cf;
+  background: #f4f6ed;
+  border-radius: 14px;
+}
+.life-suggestion h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.life-suggestion > strong {
+  display: block;
+  font-size: 12px;
+  color: #677458;
+  margin-top: 12px;
+}
+.life-suggestion button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #617148;
+  margin-top: 18px;
+  padding: 0;
+}
+.life-composer {
+  padding: 16px 22px 18px;
+  background: #fffdf8;
+  border-top: 1px solid #eee7dc;
+}
+.life-composer form {
+  border: 1px solid #d8cbbb;
+  border-radius: 16px;
+  padding: 12px;
+  background: #faf7ef;
+}
+.life-composer textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 66px;
+  max-height: 180px;
+  border: 0;
+  background: transparent;
+  outline: none;
+  padding: 4px;
+  color: var(--life-ink);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.life-composer form button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  background: var(--life-accent);
+  color: #fffaf0;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  min-height: 40px;
+}
+.life-service-note {
+  font-size: 12px;
+  color: #8b795e;
+  margin: 10px 0 0;
+}
+.life-error {
+  font-size: 13px;
+  color: #aa422e;
+  line-height: 1.6;
+  margin: 10px 0 0;
+}
+.life-error button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  text-decoration: underline;
+}
+.life-notice {
+  font-size: 12px;
+  color: #647452;
+  margin: 10px 0 0;
+}
+.life-knowledge {
+  max-height: calc(100dvh - 141px);
+  overflow: auto;
+  padding: 4px 2px 20px;
+}
+.life-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--life-line);
+  margin-bottom: 22px;
+}
+.life-tabs button {
+  padding: 13px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--life-muted);
+}
+.life-tabs button[aria-pressed="true"] {
+  color: var(--life-accent);
+  border-color: var(--life-accent);
+}
+.life-notes-heading,
+.life-editor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.life-notes-heading h2,
+.life-editor-heading h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+}
+.life-text-button {
+  border: 0;
+  background: transparent;
+  color: var(--life-accent);
+  font-size: 13px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 0;
+  min-height: 32px;
+}
+.life-empty-note {
+  padding: 32px 12px;
+  color: #928470;
+  line-height: 1.9;
+}
+.life-empty-note p {
+  font-family: "Songti SC", serif;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+.life-empty-note span {
+  font-size: 12px;
+}
+.life-note {
+  background: #fffaf0;
+  border: 1px solid var(--life-line);
+  border-radius: 14px;
+  padding: 18px;
+  margin-top: 16px;
+}
+.life-note h3 {
+  font-size: 17px;
+  margin: 10px 0 12px;
+}
+.life-note p {
+  font-size: 14px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 12px 0;
+}
+.life-note p strong {
+  display: block;
+  font-size: 12px;
+  color: var(--life-muted);
+  margin-bottom: 4px;
+}
+.life-note-status {
+  font-size: 11px;
+  color: #737d5b;
+  background: #e9ecde;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.life-evidence {
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 14px 0;
+  color: #827461;
+}
+.life-evidence summary {
+  cursor: pointer;
+}
+.life-evidence blockquote {
+  margin: 10px 0;
+  padding-left: 12px;
+  border-left: 2px solid #c4b49d;
+}
+.life-evidence p {
+  font-size: 13px;
+  margin: 0;
+}
+.life-evidence cite {
+  font-size: 11px;
+  font-style: normal;
+  display: block;
+  color: var(--life-muted);
+}
+.life-evidence a {
+  display: block;
+  text-decoration: underline;
+  margin-top: 5px;
+}
+.life-source-list article {
+  padding: 0 0 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--life-line);
+}
+.life-source-list h3 {
+  font-size: 16px;
+}
+.life-source-list blockquote {
+  font-family: "Songti SC", serif;
+  font-size: 17px;
+  line-height: 1.9;
+  margin: 12px 0;
+}
+.life-source-list .life-muted {
+  font-size: 11px;
+}
+.life-source-list details {
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 12px 0;
+  color: var(--life-muted);
+}
+.life-note-editor {
+  background: #fffcf5;
+  border: 1px solid var(--life-line);
+  padding: 18px;
+  border-radius: 15px;
+}
+.life-editor-heading {
+  margin-bottom: 20px;
+}
+.life-editor-heading button {
+  background: none;
+  border: 0;
+  color: var(--life-muted);
+  padding: 4px;
+}
+.life-note-editor label {
+  display: block;
+  font-size: 13px;
+  color: #756a5a;
+  margin: 14px 0;
+}
+.life-note-editor input,
+.life-note-editor textarea,
+.life-note-editor select {
+  width: 100%;
+  margin-top: 7px;
+  background: #fffdf9;
+  border: 1px solid #d9cdbb;
+  border-radius: 8px;
+  padding: 9px;
+  color: var(--life-ink);
+  line-height: 1.7;
+  font-size: 14px;
+}
+.life-note-editor textarea {
+  min-height: 75px;
+  resize: vertical;
+}
+.life-save {
+  width: 100%;
+  border: 0;
+  border-radius: 9px;
+  background: var(--life-accent);
+  color: #fff;
+  padding: 12px;
+  margin-top: 14px;
+}
+@keyframes life-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 1150px) {
+  .life-layout {
+    grid-template-columns: 170px minmax(300px, 1fr);
+  }
+  .life-knowledge {
+    grid-column: 2;
+    max-height: none;
+  }
+  .life-conversation {
+    height: 75dvh;
+    min-height: 600px;
+  }
+  .life-scenes {
+    grid-row: 1/3;
+  }
+}
+@media (max-width: 700px) {
+  .life-app {
+    padding: 0 12px 20px;
+  }
+  .life-header {
+    height: 74px;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  .life-wordmark {
+    padding-left: 14px;
+  }
+  .life-return {
+    font-size: 12px;
+    gap: 3px;
+  }
+  .life-header .brand-copy strong {
+    font-size: 20px;
+  }
+  .life-layout {
+    display: block;
+  }
+  .life-scenes {
+    padding: 0 4px 14px;
+  }
+  .life-scenes summary {
+    font-size: 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .life-scenes nav {
+    max-height: 155px;
+    display: flex;
+    gap: 6px;
+    overflow: auto;
+  }
+  .life-scenes nav button {
+    min-width: 160px;
+    max-width: 220px;
+    flex-shrink: 0;
+  }
+  .life-scenes .life-new {
+    width: auto;
+    display: inline-flex;
+    padding: 8px 12px;
+  }
+  .life-scenes input {
+    width: calc(100% - 150px);
+    margin: 0 0 10px 10px;
+  }
+  .life-conversation {
+    height: 80dvh;
+    min-height: 570px;
+    border-radius: 18px;
+  }
+  .life-scene-heading {
+    padding: 20px 20px 12px;
+  }
+  .life-messages {
+    padding: 20px;
+  }
+  .life-composer {
+    padding: 12px;
+  }
+  .life-user {
+    margin-left: 12px;
+  }
+  .life-knowledge {
+    padding: 20px 6px;
+  }
+  .life-welcome {
+    padding: 20px 0;
+  }
+  .life-empty-note {
+    padding: 14px 0;
+  }
+  .life-scene-heading h1 {
+    font-size: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .life-app * {
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

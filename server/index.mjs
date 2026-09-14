@@ -1,5 +1,6 @@
 import http from "node:http";
 import { answerCompanion } from "./companion.mjs";
+import { routeLife } from "./zhixing.mjs";
 const companionBusy = new Set();
 import fs from "node:fs";
 import fsp from "node:fs/promises";
@@ -199,6 +200,11 @@ const server = http.createServer(async (req, res) => {
     limit("requests:" + hash(ip), 240, 60);
     const user = session(req, res);
     const method = req.method;
+    const life = await routeLife(route, method, user, () => body(req));
+    if (life) {
+      json(res, 200, life);
+      return;
+    }
     if (route === "/api/companion/chat" && method === "GET") {
       json(res, 200, {
         messages: JSON.parse(

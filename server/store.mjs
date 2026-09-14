@@ -15,6 +15,12 @@ CREATE TABLE IF NOT EXISTS lessons(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REF
 CREATE TABLE IF NOT EXISTS quotas(key TEXT PRIMARY KEY,count INTEGER NOT NULL,expires_at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS companion_chats(lesson_id TEXT PRIMARY KEY REFERENCES lessons(id),data TEXT NOT NULL DEFAULT '[]');
 CREATE TABLE IF NOT EXISTS companion_lobby(user_id TEXT PRIMARY KEY REFERENCES users(id),data TEXT NOT NULL DEFAULT '[]');
+CREATE TABLE IF NOT EXISTS life_spaces(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),source_key TEXT NOT NULL,title TEXT NOT NULL,context TEXT NOT NULL,created_at TEXT NOT NULL,updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS life_turns(id TEXT PRIMARY KEY,space_id TEXT NOT NULL REFERENCES life_spaces(id),request_id TEXT NOT NULL,question TEXT NOT NULL,reply TEXT,status TEXT NOT NULL,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,UNIQUE(space_id,request_id));
+CREATE TABLE IF NOT EXISTS life_notes(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),space_id TEXT NOT NULL REFERENCES life_spaces(id),data TEXT NOT NULL,version INTEGER NOT NULL,created_at TEXT NOT NULL,updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS life_note_versions(note_id TEXT NOT NULL REFERENCES life_notes(id),version INTEGER NOT NULL,data TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(note_id,version));
+CREATE INDEX IF NOT EXISTS idx_life_owner ON life_spaces(user_id,updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_life_notes_owner ON life_notes(user_id,space_id);
 CREATE INDEX IF NOT EXISTS idx_lessons_owner ON lessons(user_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_lessons_queue ON lessons(status,created_at);
 CREATE INDEX IF NOT EXISTS idx_sources_owner ON sources(user_id);

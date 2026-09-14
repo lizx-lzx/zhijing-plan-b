@@ -639,3 +639,15 @@
     scroll-behavior: auto !important;
   }
 }
+.z-pet-life-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 12px 0 0;
+  border-top: 1px solid #e3d6c3;
+  color: #9c452e;
+  font-size: 14px;
+  text-decoration: none;
+}
+.z-pet-life-entry:focus-visible { outline: 2px solid #9c452e; outline-offset: 4px; }

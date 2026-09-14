@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { api } from "./learning-ui";
+import { api, base } from "./learning-ui";
+import { zhixingEntry } from "../lib/zhixing";
 import { CompanionCat } from "./companion-cat";
 import { useCompanionDrag } from "./use-companion-drag";
 import { studyNudges, useStudyNudge } from "./use-study-nudge";
@@ -15,6 +16,8 @@ export function ReadingCompanion({
   onSource,
   studyContext,
   onOriginal,
+  lifeHref,
+  onLife,
 }: {
   lessonId?: string;
   target: {
@@ -26,6 +29,8 @@ export function ReadingCompanion({
   onSource: (ids: string[], text: string) => void;
   studyContext?: { id: string; title: string; quote?: string };
   onOriginal?: () => void;
+  lifeHref?: string;
+  onLife?: () => void;
 }) {
   const [open, setOpen] = useState(false),
     [busy, setBusy] = useState(false);
@@ -254,6 +259,16 @@ export function ReadingCompanion({
             </div>
           </form>
           {error && <p role="alert">{error}</p>}
+          <a
+            className="z-pet-life-entry"
+            href={
+              lifeHref ||
+              zhixingEntry(base, lessonId ? { lessonId } : undefined)
+            }
+            onClick={onLife}
+          >
+            用到我的生活里 <span aria-hidden="true">↗</span>
+          </a>
         </section>
       )}
     </>

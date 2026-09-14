@@ -329,6 +329,7 @@ export function LessonView({
         lessonId={lesson.id}
         target={petTarget}
         onSource={source}
+        onLife={() => flush()}
       />
       <header className="z-lesson-header z-container">
         <button
