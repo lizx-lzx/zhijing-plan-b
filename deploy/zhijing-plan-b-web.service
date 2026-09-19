@@ -1,0 +1,30 @@
+[Unit]
+Description=Zhijing Plan B web
+After=network.target zhijing-plan-b-api.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/apps/zhijing-plan-b/current
+Environment=NODE_ENV=production
+Environment=NEXT_PUBLIC_BASE_PATH=/zhijing-b
+Environment=ZH_PUBLIC_ORIGIN=https://app.chainvalley.top
+Environment=PATH=/home/ubuntu/opt/node-v24.19.0-linux-x64/bin:/usr/local/bin:/usr/bin:/bin
+Environment=WRANGLER_WRITE_LOGS=false
+Environment=WRANGLER_LOG_PATH=/home/ubuntu/apps/zhijing-plan-b/runtime/wrangler.log
+ExecStart=/home/ubuntu/opt/node-v24.19.0-linux-x64/bin/node /home/ubuntu/apps/zhijing-plan-b/current/node_modules/vinext/dist/cli.js start --hostname 127.0.0.1 --port 4359
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/ubuntu/apps/zhijing-plan-b/runtime
+UMask=0027
+MemoryMax=768M
+CPUQuota=100%
+TasksMax=192
+
+[Install]
+WantedBy=multi-user.target

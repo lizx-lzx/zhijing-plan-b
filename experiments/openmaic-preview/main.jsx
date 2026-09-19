@@ -10,7 +10,8 @@ import { InlineDiagram, Overview, Practice } from "./format-views.jsx";
 import { clampTime, playbackRates } from "./learning-formats.mjs";
 import "./style.css";
 import "./formats.css";
-import { Brand } from "../../components/learning-ui";
+import { Brand, base } from "../../components/learning-ui";
+import { planBStorageKey } from "../../lib/plan-b-storage";
 import { ReadingCompanion } from "../../components/reading-companion";
 import { useExperienceShortcut } from "../../components/use-experience-shortcut";
 import "../../app/study.css";
@@ -21,6 +22,10 @@ import originalText from "./lessons/window-five-years/original.txt?raw";
 import { zhixingEntry } from "../../lib/zhixing";
 
 const query = new URLSearchParams(location.search);
+document.documentElement.style.setProperty(
+  "--reading-room-image",
+  `url("${base}/images/reading-nook-v1.webp")`,
+);
 const capture = query.has("capture"),
   still = query.has("still");
 const clock = (value) =>
@@ -60,13 +65,13 @@ function scrollToContent(selector) {
 }
 
 function App() {
-  useExperienceShortcut("/zhijing");
+  useExperienceShortcut(base);
   const [time, setTime] = useState(() => {
     if (capture || query.get("experience") !== "demo") return 0;
     if (query.has("at")) return clampTime(Number(query.get("at")), duration);
     try {
       return clampTime(
-        Number(localStorage.getItem("zhijing-demo-time")) || 0,
+        Number(localStorage.getItem(planBStorageKey("zhijing-demo-time"))) || 0,
         duration,
       );
     } catch {
@@ -76,7 +81,7 @@ function App() {
   useEffect(() => {
     if (capture || query.get("experience") !== "demo") return;
     try {
-      localStorage.setItem("zhijing-demo-time", String(time));
+      localStorage.setItem(planBStorageKey("zhijing-demo-time"), String(time));
     } catch {}
   }, [time]);
   const [mode, setMode] = useState(() => {
@@ -105,7 +110,7 @@ function App() {
   useEffect(() => {
     if (capture || query.get("experience") !== "demo") return;
     try {
-      localStorage.setItem("zhijing-demo-mode", mode);
+      localStorage.setItem(planBStorageKey("zhijing-demo-mode"), mode);
     } catch {}
   }, [mode]);
   const [scenarioAnswers, setScenarioAnswers] = useState({});
@@ -434,7 +439,7 @@ function App() {
   return (
     <>
       <header className="topbar">
-        <a className="brand" href="/zhijing/">
+        <a className="brand" href={`${base}/`}>
           <Brand />
         </a>
         {timing.voiceReady && (
@@ -955,13 +960,13 @@ function App() {
           </StudyDialog>
         )}
         <footer>
-          <a href="/zhijing/">回到书房</a>
+          <a href={`${base}/`}>回到书房</a>
           <a href="./THIRD-PARTY-NOTICES.txt">开源说明</a>
         </footer>
       </main>
       {!capture && (
         <ReadingCompanion
-          lifeHref={zhixingEntry("/zhijing", {
+          lifeHref={zhixingEntry(base, {
             article: "window-five-years",
             chapter: scene.id,
             mode,

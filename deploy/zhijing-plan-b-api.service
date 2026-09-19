@@ -1,0 +1,32 @@
+[Unit]
+Description=Zhijing Plan B preset demo API
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/apps/zhijing-plan-b/current
+Environment=NODE_ENV=production
+Environment=NEXT_PUBLIC_BASE_PATH=/zhijing-b
+Environment=ZH_PUBLIC_ORIGIN=https://app.chainvalley.top
+Environment=ZH_API_PORT=4360
+Environment=ZH_PLAN_B_ROOT=/home/ubuntu/apps/zhijing-plan-b
+Environment=ZH_DATA_DIR=/home/ubuntu/apps/zhijing-plan-b/data-plan-b
+Environment=ZH_ENV_FILE=/home/ubuntu/apps/zhijing-plan-b/private/.env.plan-b
+Environment=PATH=/home/ubuntu/opt/node-v24.19.0-linux-x64/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/ubuntu/opt/node-v24.19.0-linux-x64/bin/node /home/ubuntu/apps/zhijing-plan-b/current/server/index.mjs
+Restart=always
+RestartSec=5
+TimeoutStopSec=25
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/ubuntu/apps/zhijing-plan-b/data-plan-b
+UMask=0077
+MemoryMax=384M
+CPUQuota=100%
+TasksMax=192
+
+[Install]
+WantedBy=multi-user.target

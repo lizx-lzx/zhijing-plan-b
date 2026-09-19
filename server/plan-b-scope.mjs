@@ -6,8 +6,24 @@ export const projectRoot = fs.realpathSync(
   fileURLToPath(new URL("../", import.meta.url)),
 );
 
+// Only the explicit B release root may hold persistent data across releases.
+export function releaseStorageRoot(value, sourceRoot = projectRoot) {
+  if (!value) return sourceRoot;
+  const root = fs.realpathSync(value);
+  const relative = path.relative(root, sourceRoot).split(path.sep);
+  if (
+    path.basename(root) !== "zhijing-plan-b" ||
+    relative.length !== 2 ||
+    relative[0] !== "releases" ||
+    !/^[a-zA-Z0-9._-]+$/.test(relative[1])
+  )
+    throw new Error("Plan B 发布目录必须位于独立 zhijing-plan-b/releases 下。");
+  return root;
+}
+const storageRoot = releaseStorageRoot(process.env.ZH_PLAN_B_ROOT);
+
 function insideProject(target) {
-  const relative = path.relative(projectRoot, target);
+  const relative = path.relative(storageRoot, target);
   return (
     relative !== ".." &&
     !relative.startsWith(`..${path.sep}`) &&

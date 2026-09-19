@@ -142,7 +142,7 @@
 body {
   background:
     linear-gradient(#f8f4ebdf, #f8f4ebf5),
-    url("/zhijing/images/reading-nook-v1.webp") center/cover fixed;
+    var(--reading-room-image, none) center/cover fixed;
   min-height: 100vh;
 }
 .topbar {

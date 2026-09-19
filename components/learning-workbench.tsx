@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { Answers, Lesson, Profile, Source } from "../lib/domain";
 import { mediaLabels, profileForLesson, questions } from "../lib/domain";
+import { planBStorageKey } from "../lib/plan-b-storage";
 import { api, base, endpoint, ErrorNotice, Spinner } from "./learning-ui";
 import {
   demoEntryMode,
@@ -249,8 +250,11 @@ export function Workbench({
   const [resumeMode, setResumeMode] = useState("video");
   useEffect(() => {
     try {
-      setDemoVisited(localStorage.getItem("zhijing-demo-visited") === "1");
-      const saved = localStorage.getItem("zhijing-demo-mode") || "video";
+      setDemoVisited(
+        localStorage.getItem(planBStorageKey("zhijing-demo-visited")) === "1",
+      );
+      const saved =
+        localStorage.getItem(planBStorageKey("zhijing-demo-mode")) || "video";
       if (demoModes.includes(saved)) setResumeMode(saved);
     } catch {}
   }, []);
@@ -263,10 +267,16 @@ export function Workbench({
       setBusy("正在准备示例");
       await new Promise((resolve) => setTimeout(resolve, 1800));
       try {
-        localStorage.setItem("zhijing-demo-visited", "1");
-        localStorage.setItem("zhijing-demo-mode", selectedMode);
-        localStorage.setItem("zhijing-demo-time", "0");
-        localStorage.setItem("zhijing-demo-formats", selectedModes.join(","));
+        localStorage.setItem(planBStorageKey("zhijing-demo-visited"), "1");
+        localStorage.setItem(
+          planBStorageKey("zhijing-demo-mode"),
+          selectedMode,
+        );
+        localStorage.setItem(planBStorageKey("zhijing-demo-time"), "0");
+        localStorage.setItem(
+          planBStorageKey("zhijing-demo-formats"),
+          selectedModes.join(","),
+        );
       } catch {}
       window.location.assign(
         demoStudyUrl(base, selectedMode) +

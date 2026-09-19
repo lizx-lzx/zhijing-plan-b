@@ -4,10 +4,56 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { projectPath, projectRoot } from "../server/plan-b-scope.mjs";
+import {
+  projectPath,
+  projectRoot,
+  releaseStorageRoot,
+} from "../server/plan-b-scope.mjs";
+import { planBStorageKey } from "../lib/plan-b-storage.ts";
 import { localDemoIndex } from "../build/local-demo-index.ts";
 
 const read = (name) => fs.readFileSync(path.join(projectRoot, name), "utf8");
+
+test("public B build isolates URLs, browser state and persistent release data", () => {
+  const player = read("experiments/openmaic-preview/main.jsx");
+  assert.match(player, /zhixingEntry\(base,/);
+  assert.match(player, /useExperienceShortcut\(base\)/);
+  assert.doesNotMatch(player, /href="\/zhijing\//);
+  assert.ok(planBStorageKey("zhijing-demo-time").startsWith("zhijing-plan-b:"));
+  for (const file of [
+    "components/learning-workbench.tsx",
+    "components/learning-app.tsx",
+    "experiments/openmaic-preview/main.jsx",
+  ])
+    assert.doesNotMatch(
+      read(file),
+      /localStorage\.(?:getItem|setItem)\("zhijing-/,
+    );
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "zhijing-release-test-")));
+  try {
+    const b = path.join(root, "zhijing-plan-b");
+    fs.mkdirSync(b);
+    assert.equal(releaseStorageRoot(b, path.join(b, "releases", "v1")), b);
+    assert.throws(() =>
+      releaseStorageRoot(root, path.join(b, "releases", "v1")),
+    );
+    assert.throws(() =>
+      releaseStorageRoot(b, path.join(root, "zhijing", "releases", "v1")),
+    );
+    assert.throws(() => releaseStorageRoot(b, b));
+    assert.equal(releaseStorageRoot(undefined), projectRoot);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+  const nginx = read("deploy/zhijing-plan-b-location.conf");
+  assert.doesNotMatch(nginx, /apps\/zhijing\//);
+  for (const name of ["web", "api"]) {
+    const service = read(`deploy/zhijing-plan-b-${name}.service`);
+    assert.match(service, /Restart=always/);
+    assert.match(service, /WantedBy=multi-user.target/);
+    assert.doesNotMatch(service, /apps\/zhijing\//);
+  }
+});
 
 test("Plan B has independent runtime, source hosting identity and session", () => {
   const pkg = JSON.parse(read("package.json"));
@@ -155,7 +201,10 @@ test("demo formats stay directly switchable regardless of entry selection or res
   }
   assert.match(tabs, /onClick=\{\(\) => switchMode\(key\)\}/);
   assert.doesNotMatch(tabs, /<select|\.filter\(/);
-  assert.doesNotMatch(player, /visibleModes|query\.get\("formats"\)|zhijing-demo-formats/);
+  assert.doesNotMatch(
+    player,
+    /visibleModes|query\.get\("formats"\)|zhijing-demo-formats/,
+  );
   // The chosen main format and the shared learning position still drive entry/switching.
   assert.match(player, /const requested = query\.get\("mode"\)/);
   assert.match(player, /setTime\(position\);\s*setMode\(next\)/);
@@ -165,7 +214,10 @@ test("welcome starts the learning flow without a featured demo shortcut", () => 
   const welcome = read("components/learning-welcome.tsx");
   assert.match(welcome, /找到我的学法/);
   assert.match(welcome, /onClick=\{onStart\}/);
-  assert.doesNotMatch(welcome, /z-featured-work|\/demo\/|窗口期可能只剩五年|学习作品示例/);
+  assert.doesNotMatch(
+    welcome,
+    /z-featured-work|\/demo\/|窗口期可能只剩五年|学习作品示例/,
+  );
   const workbench = read("components/learning-workbench.tsx");
   assert.match(workbench, /demoVisited &&/);
   assert.match(workbench, /上回读到/);

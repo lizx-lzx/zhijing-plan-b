@@ -5,6 +5,7 @@ import { useReducedMotion } from "motion/react";
 import type { Answers, Lesson, Profile } from "../lib/domain";
 import { defaultAnswers, normalizeAnswers } from "../lib/domain";
 import { entryRoute } from "../lib/entry-route";
+import { planBStorageKey } from "../lib/plan-b-storage";
 import { pageMotionEnabled } from "../lib/motion-policy";
 import { Welcome } from "./learning-welcome";
 import {
@@ -95,7 +96,9 @@ export default function LearningApp() {
         if (!data.profile) {
           try {
             const old = JSON.parse(
-              localStorage.getItem("zhijing-learning-profile") || "null",
+              localStorage.getItem(
+                planBStorageKey("zhijing-learning-profile"),
+              ) || "null",
             );
             if (old?.questionnaire)
               setLegacy(
